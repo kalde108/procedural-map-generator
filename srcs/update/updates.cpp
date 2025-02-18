@@ -16,7 +16,11 @@ void update_camera(t_env *env)
 	}
 	if (env->input.key_state[KEY_Z] == KEY_STATE_PRESSED)
 	{
-		env->flags = ++env->flags % 2;
+		env->flags = ++env->flags % NOISE_COUNT;
+	}
+	if (env->input.key_state[KEY_R] == KEY_STATE_PRESSED)
+	{
+		env->pv = ++env->pv % 2;
 	}
 }
 

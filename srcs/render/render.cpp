@@ -82,8 +82,8 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 		{{0xe4f4e3}, {0xcacaca}, {0x8bb64d}, {0xeadd9c}},
 		{{0x5e8dc2}, {0x5e8dc2}, {0x269daf}, {0x269daf}}
 	};
-	// static double min = 1.0;
-	// static double max = -1.0;
+	static double min = 1.0;
+	static double max = -1.0;
 	t_color color;
 
 	double scale = env->camera_zoom;
@@ -101,37 +101,72 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			// double ny = (double)y;
 			double nz = 0.0 * scale + zoff;
 			
-			double height = (env->perlin[2].octaveNoise(nx, ny, nz, 8, 0.5));
-			height = height * 0.5 + 0.5;
+			// double continentalness_noise = env->perlin[NOISE_CONTINENTS].noise(nx, ny, nz);
+			double continentalness_noise = env->noise[NOISE_CONTINENTS].sample(nx, ny, nz);
 
-			color = lerp_color((t_color){0}, (t_color){0xFFFFFF}, (height + 1.0) * 0.5);
+			// if (continentalness_noise < min) {
+			// 	min = continentalness_noise;
+			// }
 
-			int is_water = 0;
-			if (height < water_level) {
-				is_water = 1;
+			// if (continentalness_noise > max) {
+			// 	max = continentalness_noise;
+			// }
+
+			double erosion_noise = env->noise[NOISE_EROSION].sample(nx, ny, nz);
+
+			double temperature_noise = env->noise[NOISE_TEMPERATURE].sample(nx, ny, nz);
+
+			double vegetation_noise = env->noise[NOISE_VEGETATION].sample(nx, ny, nz);
+
+			double ridges_noise = env->noise[NOISE_RIDGES].sample(nx, ny, nz);
+
+			double ridges_folded = 1.0 - fabs(3.0 * fabs(ridges_noise) - 2.0);
+			
+			// #FDE725
+			if (env->flags == NOISE_CONTINENTS) {
+				if (continentalness_noise < 0) {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, continentalness_noise / env->noise[NOISE_CONTINENTS].maxValue + 1.0));
+				} else {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, continentalness_noise / env->noise[NOISE_CONTINENTS].maxValue));
+				}
+			} else if (env->flags == NOISE_EROSION) {
+				if (erosion_noise < 0) {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, erosion_noise / env->noise[NOISE_EROSION].maxValue + 1.0));
+				} else {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, erosion_noise / env->noise[NOISE_EROSION].maxValue));
+				}
+			} else if (env->flags == NOISE_TEMPERATURE) {
+				if (temperature_noise  < 0) {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, temperature_noise  / env->noise[NOISE_TEMPERATURE].maxValue + 1.0));
+				} else {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, temperature_noise  / env->noise[NOISE_TEMPERATURE].maxValue));
+				}
+			} else if (env->flags == NOISE_VEGETATION) {
+				if (vegetation_noise  < 0) {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, vegetation_noise  / env->noise[NOISE_VEGETATION].maxValue + 1.0));
+				} else {
+					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, vegetation_noise  / env->noise[NOISE_VEGETATION].maxValue));
+				}
+			} else if (env->flags == NOISE_RIDGES) {
+				if (env->pv) {
+					if (ridges_folded < 0) {
+						put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, ridges_folded + 1.0));
+					} else {
+						put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, ridges_folded));
+					}
+				} else {
+					if (ridges_noise < 0) {
+						put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, ridges_noise / env->noise[NOISE_RIDGES].maxValue + 1.0));
+					} else {
+						put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, ridges_noise / env->noise[NOISE_RIDGES].maxValue));
+					}
+				}
 			}
-
-			nz += 52.5;
-
-			double temperature = (env->perlin[0].octaveNoise(nx, ny, nz, 8, 0.5));
-
-			int is_cold = temperature < 0.0;
-
-			nz += 52.5;
-
-			double humidity = (env->perlin[1].octaveNoise(nx, ny, nz, 8, 0.5));
-
-			int is_wet = humidity < 0.0;
-
-			int climate = is_cold * 2 + is_wet;
-			// printf("is_cold: %d, is_wet: %d, climate: %d\n", is_cold, is_wet, climate);
-			color = biomes[is_water][climate];
-			// put_pixel(&env->img, x, y0, color);
-
-			// height map
-			put_pixel(&env->img, x, y0, lerp_color((t_color){0}, (t_color){0xFFFFFF}, height));
+			
+			// put_pixel(&env->img, x, y0, lerp_color((t_color){0}, (t_color){0xFFFFFF}, continentalness * 0.25 + 0.5));
 		}
 		y0++;
 	}
+	// std::cerr << "min: " << min << " ; max: " << max << std::endl;
 }
 

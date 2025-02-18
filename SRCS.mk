@@ -5,7 +5,10 @@ SRC = \
 	ft_itoalen \
 	get_keyindex \
 	main \
+	MinecraftNoise \
+	MultiOctaveNoise \
 	PerlinNoise \
+	Random \
 
 # ********** ENV ********** #
 

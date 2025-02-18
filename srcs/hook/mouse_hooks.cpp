@@ -58,8 +58,8 @@ int	buttonpress_hook(int button, int x, int y, t_env *env)
 	{
 		env->camera_zoom *= 0.9;
 		// env->camera_zoom -= 1;
-		if (env->camera_zoom <= 0.1)
-			env->camera_zoom = 0.1;
+		if (env->camera_zoom <= 0.01)
+			env->camera_zoom = 0.01;
 	}
 		// env->input.mouse.status |= MOUSE_WHEEL_DOWN;
 	return (0);

@@ -21,6 +21,8 @@ extern "C" {
 #include "env.h"
 #include "ft_time.h"
 
+# include <iostream>
+
 int	init_env(t_env *env)
 {
 	env->mlx = mlx_init();
@@ -41,8 +43,22 @@ int	init_env(t_env *env)
 	env->camera_pos = (t_v2d_d){0, 0};
 	env->flags = 0;
 	init_timer(&env->frame_timer, 0, MANUAL_RESET);
-	for (int i = 0; i < PERLIN_NOISE; i++) {
-		env->perlin[i] = PerlinNoise(rand());
-	}
+	env->rng = Random(rand());
+	// env->perlin[NOISE_CONTINENTS] = MinecraftNoise(rand(), -9, std::vector<double>({1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0}));
+	// env->perlin[NOISE_EROSION] = MinecraftNoise(rand(), -6, std::vector<double>({1.0, 0.0, 1.0}));
+	env->noise[NOISE_CONTINENTS] = MultiOctaveNoise(&env->rng, -9, std::vector<double>({1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0}));
+	std::cerr << "max continentalness value: " << env->noise[NOISE_CONTINENTS].maxValue << std::endl;
+	env->rng.consume(100);
+	env->noise[NOISE_EROSION] = MultiOctaveNoise(&env->rng, -9, std::vector<double>({1.0, 1.0, 0.0, 1.0, 1.0}));
+	std::cerr << "max erosion value: " << env->noise[NOISE_EROSION].maxValue << std::endl;
+	env->rng.consume(100);
+	env->noise[NOISE_TEMPERATURE] = MultiOctaveNoise(&env->rng, -10, std::vector<double>({1.5, 0.0, 1.0, 0.0, 0.0, 0.0}));
+	std::cerr << "max temperature value: " << env->noise[NOISE_TEMPERATURE].maxValue << std::endl;
+	env->rng.consume(100);
+	env->noise[NOISE_VEGETATION] = MultiOctaveNoise(&env->rng, -8, std::vector<double>({1.0, 1.0, 0.0, 0.0, 0.0, 0.0}));
+	std::cerr << "max vegetation value: " << env->noise[NOISE_VEGETATION].maxValue << std::endl;
+	env->rng.consume(100);
+	env->noise[NOISE_RIDGES] = MultiOctaveNoise(&env->rng, -7, std::vector<double>({1.0, 2.0, 1.0, 0.0, 0.0, 0.0}));
+	std::cerr << "max weirdness value: " << env->noise[NOISE_RIDGES].maxValue << std::endl;
 	return (0);
 }
