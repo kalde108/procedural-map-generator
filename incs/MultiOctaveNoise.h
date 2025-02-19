@@ -12,7 +12,7 @@
 class MultiOctaveNoise {
 public:
 	// Vector holding a noise generator for each octave.
-	std::vector<std::unique_ptr<PerlinNoise>> noiseLevels;
+	std::vector<PerlinNoise> noiseLevels;
 	// The amplitude (weight) for each octave.
 	std::vector<double> amplitudes;
 	// Factor used to scale input coordinates for the lowest-frequency octave.
@@ -34,7 +34,7 @@ public:
 	 */
 	MultiOctaveNoise(Random* rng, int firstOctave, const std::vector<double>& amps, bool modern = true);
 
-	MultiOctaveNoise &operator=(const MultiOctaveNoise &other);
+	MultiOctaveNoise &operator=(const MultiOctaveNoise &other) = default;
 
 	/**
 	 * Samples the combined multi–octave noise at the given 3D coordinates.
@@ -56,7 +56,7 @@ public:
 	 * @param index The octave index (0 is the highest octave).
 	 * @return Pointer to the PerlinNoise instance.
 	 */
-	PerlinNoise* getOctaveNoise(size_t index);
+	PerlinNoise &getOctaveNoise(size_t index);
 
 	/**
 	 * Computes an "edge value" based on the given parameter.
