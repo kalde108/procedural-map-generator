@@ -48,23 +48,24 @@ typedef struct
 
 typedef struct
 {
-	void				*mlx;
-	void				*win;
-	t_ft_img			img;
-	t_mlx_info			mlx_info;
-	t_input				input;
-	size_t				frame_time;
-	t_timer				frame_timer;
-	t_v2d_d				camera_pos;
-	float				camera_zoom;
-	int					flags;
-	int					pv;
-	Random				rng;
-	// MinecraftNoise	perlin[PERLIN_NOISE_COUNT];
-	MultiOctaveNoise	noise[NOISE_COUNT];
-	std::thread			*threads;
-	int					nb_threads;
-	// Map					map;
+	void						*mlx;
+	void						*win;
+	t_ft_img					img;
+	t_mlx_info					mlx_info;
+	t_input						input;
+	size_t						frame_time;
+	t_timer						frame_timer;
+	t_v2d_d						camera_pos;
+	float						camera_zoom;
+	int							flags;
+	int							pv;
+	Random						rng;
+	// MinecraftNoise			perlin[PERLIN_NOISE_COUNT];
+	MultiOctaveNoise			noise[NOISE_COUNT];
+	std::vector<BiomeRule_t>	biome_rules;
+	std::thread					*threads;
+	int							nb_threads;
+	// Map							map;
 }	t_env;
 
 int		check_arguments(int ac, char **av);
