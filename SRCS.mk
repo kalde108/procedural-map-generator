@@ -1,6 +1,7 @@
 SRCS_DIR = srcs/
 
 SRC = \
+	biome_conversions \
 	check_arguments \
 	ft_itoalen \
 	get_keyindex \
