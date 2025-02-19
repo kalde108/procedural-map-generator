@@ -17,13 +17,17 @@ MultiOctaveNoise::MultiOctaveNoise(Random* rng, int firstOctave, const std::vect
 			if (amps[o] != 0) {
 				int octave = firstOctave + static_cast<int>(o);
 				// Create a new RNG based on a hash of the octave identifier.
-				std::unique_ptr<Random> octaveRng = forked->fromHashOf("octave_" + std::to_string(octave) + std::to_string(forked->nextInt(1000000000)));
+				std::unique_ptr<Random> rngA = forked->fromHashOf("octave_" + std::to_string(octave) + "_a" + std::to_string(forked->nextInt(1000000000)));
+				std::unique_ptr<Random> rngB = forked->fromHashOf("octave_" + std::to_string(octave) + "_b" + std::to_string(forked->nextInt(1000000000)));
 				// Obtain a seed from the new RNG. The bound here is arbitrary.
-				unsigned int seed = octaveRng->nextInt(1000000000);
-				this->noiseLevels[o] = PerlinNoise(seed);
+				unsigned int seedA = rngA->nextInt(1000000000);
+				unsigned int seedB = rngB->nextInt(1000000000);
+				this->noiseLevels[o].first = PerlinNoise(seedA);
+				this->noiseLevels[o].second = PerlinNoise(seedB);
 			} else {
 				// Amplitude zero: assign a default-constructed noise (its value won’t be used).
-				noiseLevels[o] = PerlinNoise();
+				noiseLevels[o].first = PerlinNoise();
+				noiseLevels[o].second = PerlinNoise();
 			}
 		}
 	} else {
@@ -36,10 +40,13 @@ MultiOctaveNoise::MultiOctaveNoise(Random* rng, int firstOctave, const std::vect
 		for (int s = -firstOctave; s >= 0; s--) {
 			if (s < static_cast<int>(amps.size()) && amps[s] != 0) {
 				// Use the provided RNG directly to create the PerlinNoise instance.
-				unsigned int seed = rng->nextInt(1000000000);
-				this->noiseLevels[s] = PerlinNoise(seed);
+				unsigned int seedA = rng->nextInt(1000000000);
+				unsigned int seedB = rng->nextInt(1000000000);
+				this->noiseLevels[s].first = PerlinNoise(seedA);
+				this->noiseLevels[s].second = PerlinNoise(seedB);
 			} else {
-				noiseLevels[s] = PerlinNoise();
+				noiseLevels[s].first = PerlinNoise();
+				noiseLevels[s].second = PerlinNoise();
 				// Consume random numbers to maintain RNG state consistency.
 				rng->consume(262);
 			}
@@ -48,7 +55,7 @@ MultiOctaveNoise::MultiOctaveNoise(Random* rng, int firstOctave, const std::vect
 	this->lowestFreqInputFactor = std::pow(2.0, firstOctave);
 	this->lowestFreqValueFactor = std::pow(2.0, static_cast<double>(amps.size() - 1)) /
 								(std::pow(2.0, static_cast<double>(amps.size())) - 1);
-	this->maxValue = edgeValue(1.0);
+	this->maxValue = edgeValue(2.0);
 }
 
 double MultiOctaveNoise::sample(double x, double y, double z, double param, double param2, bool flag) {
@@ -62,7 +69,12 @@ double MultiOctaveNoise::sample(double x, double y, double z, double param, doub
 			double sampleY = flag ? -MultiOctaveNoise::wrap(y * freqFactor) : MultiOctaveNoise::wrap(y * freqFactor);
 			double sampleZ = MultiOctaveNoise::wrap(z * freqFactor);
 			// Use the PerlinNoise::noise() method for a 3D noise value.
-			value += this->amplitudes[i] * ampFactor * this->noiseLevels[i].noise(sampleX, sampleY, sampleZ);
+			double noiseA = this->noiseLevels[i].first.noise(sampleX, sampleY, sampleZ);
+			// double noiseB = this->noiseLevels[i].second.noise(sampleX, sampleY, sampleZ);
+
+			// double octaveValue = (noiseA + noiseB) / 2.0;
+
+			value += this->amplitudes[i] * ampFactor * noiseA;
 		}
 		freqFactor *= 2.0;
 		ampFactor /= 2.0;
@@ -75,7 +87,7 @@ PerlinNoise &MultiOctaveNoise::getOctaveNoise(size_t index) {
 		throw std::out_of_range("Octave index out of range");
 	}
 	// Reverse the order so that index 0 corresponds to the highest-frequency octave.
-	return this->noiseLevels[this->noiseLevels.size() - 1 - index];
+	return this->noiseLevels[this->noiseLevels.size() - 1 - index].first;
 }
 
 double MultiOctaveNoise::edgeValue(double t) {

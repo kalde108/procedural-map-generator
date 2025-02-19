@@ -12,7 +12,7 @@
 class MultiOctaveNoise {
 public:
 	// Vector holding a noise generator for each octave.
-	std::vector<PerlinNoise> noiseLevels;
+	std::vector<std::pair<PerlinNoise,PerlinNoise>> noiseLevels;
 	// The amplitude (weight) for each octave.
 	std::vector<double> amplitudes;
 	// Factor used to scale input coordinates for the lowest-frequency octave.

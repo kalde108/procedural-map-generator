@@ -124,7 +124,7 @@ Biome_t beach_type_resolve(int temperature_level) {
 }
 
 Biome_t badland_type_resolve(int humidity_level, double weirdness) {
-	if (humidity_level == 0 && humidity_level == 1) {
+	if (humidity_level == 0 || humidity_level == 1) {
 		if (weirdness <= 0) {
 			return BIOME_BADLANDS;
 		} else {
@@ -132,7 +132,7 @@ Biome_t badland_type_resolve(int humidity_level, double weirdness) {
 		}
 	} else if (humidity_level == 2) {
 		return BIOME_BADLANDS;
-	} else if (humidity_level == 3 && humidity_level == 4) {
+	} else if (humidity_level == 3 || humidity_level == 4) {
 		return BIOME_WOODED_BADLANDS;
 	} else {
 		return BIOME_COUNT;
@@ -161,7 +161,7 @@ Biome_t middle_type_resolve(int temperature_level, int humidity_level, double we
 			return BIOME_TAIGA;
 		}
 	} else if (temperature_level == 1) {
-		if (humidity_level == 0 && humidity_level == 1) {
+		if (humidity_level == 0 || humidity_level == 1) {
 			return BIOME_PLAINS;
 		} else if (humidity_level == 2) {
 			return BIOME_FOREST;
@@ -195,7 +195,7 @@ Biome_t middle_type_resolve(int temperature_level, int humidity_level, double we
 			return BIOME_DARK_FOREST;
 		}
 	} else if (temperature_level == 3) {
-		if (humidity_level == 0 && humidity_level == 1) {
+		if (humidity_level == 0 || humidity_level == 1) {
 			return BIOME_SAVANNA;
 		} else if (humidity_level == 2) {
 			if (weirdness <= 0) {
@@ -230,9 +230,9 @@ Biome_t plateau_type_resolve(int temperature_level, int humidity_level, double w
 			} else {
 				return BIOME_ICE_SPIKES;
 			}
-		} else if (humidity_level == 1 && humidity_level == 2) {
+		} else if (humidity_level == 1 || humidity_level == 2) {
 			return BIOME_SNOWY_PLAINS;
-		} else if (humidity_level == 3 && humidity_level == 4) {
+		} else if (humidity_level == 3 || humidity_level == 4) {
 			return BIOME_SNOWY_TAIGA;
 		}
 	} else if (temperature_level == 1) {
@@ -264,7 +264,7 @@ Biome_t plateau_type_resolve(int temperature_level, int humidity_level, double w
 			}
 		}
 	} else if (temperature_level == 2) {
-		if (humidity_level == 0 && humidity_level == 1) {
+		if (humidity_level == 0 || humidity_level == 1) {
 			if (weirdness <= 0) {
 				return BIOME_MEADOW;
 			} else {
@@ -290,9 +290,9 @@ Biome_t plateau_type_resolve(int temperature_level, int humidity_level, double w
 			}
 		}
 	} else if (temperature_level == 3) {
-		if (humidity_level == 0 && humidity_level == 1) {
+		if (humidity_level == 0 || humidity_level == 1) {
 			return BIOME_SAVANNA_PLATEAU;
-		} else if (humidity_level == 2 && humidity_level == 3) {
+		} else if (humidity_level == 2 || humidity_level == 3) {
 			return BIOME_FOREST;
 		} else if (humidity_level == 4) {
 			return BIOME_JUNGLE;
@@ -306,7 +306,7 @@ Biome_t plateau_type_resolve(int temperature_level, int humidity_level, double w
 			}
 		} else if (humidity_level == 2) {
 			return BIOME_BADLANDS;
-		} else if (humidity_level == 3 && humidity_level == 4) {
+		} else if (humidity_level == 3 || humidity_level == 4) {
 			return BIOME_WOODED_BADLANDS;
 		}
 	}
@@ -314,22 +314,22 @@ Biome_t plateau_type_resolve(int temperature_level, int humidity_level, double w
 }
 
 Biome_t shattered_type_resolve(int temperature_level, int humidity_level, double weirdness) {
-	if (temperature_level == 0 && temperature_level == 1) {
-		if (humidity_level == 0 && humidity_level == 1) {
+	if (temperature_level == 0 || temperature_level == 1) {
+		if (humidity_level == 0 || humidity_level == 1) {
 			return BIOME_WINDSWEPT_GRAVELLY_HILLS;
 		} else if (humidity_level == 2) {
 			return BIOME_WINDSWEPT_HILLS;
-		} else if (humidity_level == 3 && humidity_level == 4) {
+		} else if (humidity_level == 3 || humidity_level == 4) {
 			return BIOME_WINDSWEPT_FOREST;
 		}
 	} else if (temperature_level == 2) {
 		if (humidity_level >= 0 && humidity_level <= 2) {
 			return BIOME_WINDSWEPT_HILLS;
-		} else if (humidity_level == 3 && humidity_level == 4) {
+		} else if (humidity_level == 3 || humidity_level == 4) {
 			return BIOME_WINDSWEPT_FOREST;
 		}
 	} else if (temperature_level == 3) {
-		if (humidity_level == 0 && humidity_level == 1) {
+		if (humidity_level == 0 || humidity_level == 1) {
 			return BIOME_SAVANNA;
 		} else if (humidity_level == 2) {
 			if (weirdness <= 0) {

@@ -89,20 +89,20 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			double nz = 0.0 * scale + zoff;
 			
 			// double continentalness_noise = env->perlin[NOISE_CONTINENTS].noise(nx, ny, nz);
-			double continentalness_noise = env->noise[NOISE_CONTINENTS].sample(nx, ny, nz);
+			double continentalness_noise = env->noise[NOISE_CONTINENTS].sample(nx, ny, nz) * 1.75;
 
 			// std::cerr << "cont: " << continentalness_noise << "\n";
-			// if (continentalness_noise < min) {
-			// 	min = continentalness_noise;
-			// }
+			if (continentalness_noise < min) {
+				min = continentalness_noise;
+			}
 
-			// if (continentalness_noise > max) {
-			// 	max = continentalness_noise;
-			// }
+			if (continentalness_noise > max) {
+				max = continentalness_noise;
+			}
 
 			Continentalness_t continentalness = noise_to_continentalness(continentalness_noise);
 
-			double erosion_noise = env->noise[NOISE_EROSION].sample(nx, ny, nz);
+			double erosion_noise = env->noise[NOISE_EROSION].sample(nx, ny, nz) * 1.75;
 
 			// if (erosion_noise < min) {
 			// 	min = erosion_noise;
@@ -114,7 +114,7 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 
 			int erosion_level = noise_to_erosion_level(erosion_noise);
 
-			double temperature_noise = env->noise[NOISE_TEMPERATURE].sample(nx, ny, nz);
+			double temperature_noise = env->noise[NOISE_TEMPERATURE].sample(nx, ny, nz) * 1.31;
 
 			// if (temperature_noise < min) {
 			// 	min = temperature_noise;
@@ -126,7 +126,7 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 
 			int temperature_level = noise_to_temperature_level(temperature_noise);
 
-			double vegetation_noise = env->noise[NOISE_VEGETATION].sample(nx, ny, nz);
+			double vegetation_noise = env->noise[NOISE_VEGETATION].sample(nx, ny, nz) * 1.78;
 
 			// if (vegetation_noise < min) {
 			// 	min = vegetation_noise;
@@ -138,15 +138,21 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 
 			int humidity_level = noise_to_humidity_level(vegetation_noise);
 
-			double ridges_noise = env->noise[NOISE_RIDGES].sample(nx, ny, nz);
+			double ridges_noise = env->noise[NOISE_RIDGES].sample(nx, ny, nz) * 1.3;
 
-			if (ridges_noise < min) {
-				min = ridges_noise;
-			}
+			// if (ridges_noise < -1.2) {
+			// 	ridges_noise = -1.2;
+			// } else if (ridges_noise > 1.2) {
+			// 	ridges_noise = 1.2;
+			// }
 
-			if (ridges_noise > max) {
-				max = ridges_noise;
-			}
+			// if (ridges_noise < min) {
+			// 	min = ridges_noise;
+			// }
+
+			// if (ridges_noise > max) {
+			// 	max = ridges_noise;
+			// }
 
 			double ridges_folded = 1.0 - fabs(3.0 * fabs(ridges_noise) - 2.0);
 
@@ -209,9 +215,17 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 				} else if (biome == BIOME_TYPE_BADLAND)
 				{
 					biome = badland_type_resolve(humidity_level, ridges_noise);
+					// if (biome == BIOME_COUNT) {
+						// biome = BIOME_THE_VOID;
+						// std::cout << "AIE" << std::endl;
+					// }
 				} else if (biome == BIOME_TYPE_MIDDLE)
 				{
 					biome = middle_type_resolve(temperature_level, humidity_level, ridges_noise);
+					// if (biome == BIOME_COUNT) {
+						// biome = BIOME_THE_VOID;
+						// std::cout << "AIE" << std::endl;
+					// }
 				} else if (biome == BIOME_TYPE_PLATEAU)
 				{
 					biome = plateau_type_resolve(temperature_level, humidity_level, ridges_noise);
@@ -222,6 +236,7 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			}
 			if (biome == BIOME_COUNT) {
 				biome = BIOME_THE_VOID;
+				// std::cout << "AIE" << std::endl;
 			}
 
 			if (env->input.mouse.status & MOUSE_BUTTON_RIGHT && env->input.mouse.x == x && env->input.mouse.y == y0)
