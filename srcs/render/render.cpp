@@ -51,16 +51,6 @@ int	render(t_env *env)
 	return (0);
 }
 
-// t_color lerp_color(t_color color1, t_color color2, double t)
-// {
-// 	t_color color;
-// 	color.argb = 0;
-// 	color.r = (uint8_t)(color1.r + (color2.r - color1.r) * t);
-// 	color.g = (uint8_t)(color1.g + (color2.g - color1.g) * t);
-// 	color.b = (uint8_t)(color1.b + (color2.b - color1.b) * t);
-// 	return (color);
-// }
-
 void noise_threading(t_env *env, double zoff)
 {
 	for (int thread_id = 0; thread_id < env->nb_threads; thread_id++)
@@ -78,12 +68,9 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 	static t_color color1 = {0x2d41b3};
 	static t_color color2 = {0x4d9fe4};
 	static double water_level = 0.45;
-	static t_color biomes[2][4] = {	// 0: land, 1: water => 0: cold-wet, 1: cold-dry, 2: hot-wet, 3: hot-dry
-		{{0xe4f4e3}, {0xcacaca}, {0x8bb64d}, {0xeadd9c}},
-		{{0x5e8dc2}, {0x5e8dc2}, {0x269daf}, {0x269daf}}
-	};
 	static double min = 1.0;
 	static double max = -1.0;
+	Biome_t biome = BIOME_THE_VOID;
 	t_color color;
 
 	double scale = env->camera_zoom;
@@ -104,66 +91,105 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			// double continentalness_noise = env->perlin[NOISE_CONTINENTS].noise(nx, ny, nz);
 			double continentalness_noise = env->noise[NOISE_CONTINENTS].sample(nx, ny, nz);
 
-			// if (continentalness_noise < min) {
-			// 	min = continentalness_noise;
-			// }
-
-			// if (continentalness_noise > max) {
-			// 	max = continentalness_noise;
-			// }
+			Continentalness_t continentalness = noise_to_continentalness(continentalness_noise);
 
 			double erosion_noise = env->noise[NOISE_EROSION].sample(nx, ny, nz);
 
+			int erosion_level = noise_to_erosion_level(erosion_noise);
+
 			double temperature_noise = env->noise[NOISE_TEMPERATURE].sample(nx, ny, nz);
 
+			int temperature_level = noise_to_temperature_level(temperature_noise);
+
 			double vegetation_noise = env->noise[NOISE_VEGETATION].sample(nx, ny, nz);
+
+			int humidity_level = noise_to_humidity_level(vegetation_noise);
 
 			double ridges_noise = env->noise[NOISE_RIDGES].sample(nx, ny, nz);
 
 			double ridges_folded = 1.0 - fabs(3.0 * fabs(ridges_noise) - 2.0);
+
+			PeaksValleys_t peaks_valleys = noise_to_pv(ridges_folded);
 			
 			// #FDE725
-			if (env->flags == NOISE_CONTINENTS) {
-				if (continentalness_noise < 0) {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, continentalness_noise / env->noise[NOISE_CONTINENTS].maxValue + 1.0));
-				} else {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, continentalness_noise / env->noise[NOISE_CONTINENTS].maxValue));
-				}
-			} else if (env->flags == NOISE_EROSION) {
-				if (erosion_noise < 0) {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, erosion_noise / env->noise[NOISE_EROSION].maxValue + 1.0));
-				} else {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, erosion_noise / env->noise[NOISE_EROSION].maxValue));
-				}
-			} else if (env->flags == NOISE_TEMPERATURE) {
-				if (temperature_noise  < 0) {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, temperature_noise  / env->noise[NOISE_TEMPERATURE].maxValue + 1.0));
-				} else {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, temperature_noise  / env->noise[NOISE_TEMPERATURE].maxValue));
-				}
-			} else if (env->flags == NOISE_VEGETATION) {
-				if (vegetation_noise  < 0) {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, vegetation_noise  / env->noise[NOISE_VEGETATION].maxValue + 1.0));
-				} else {
-					put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, vegetation_noise  / env->noise[NOISE_VEGETATION].maxValue));
-				}
-			} else if (env->flags == NOISE_RIDGES) {
-				if (env->pv) {
-					if (ridges_folded < 0) {
-						put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, ridges_folded + 1.0));
-					} else {
-						put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, ridges_folded));
-					}
-				} else {
-					if (ridges_noise < 0) {
-						put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, ridges_noise / env->noise[NOISE_RIDGES].maxValue + 1.0));
-					} else {
-						put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, ridges_noise / env->noise[NOISE_RIDGES].maxValue));
-					}
+			// if (env->flags == NOISE_CONTINENTS) {
+			// 	if (continentalness_noise < 0) {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, continentalness_noise / env->noise[NOISE_CONTINENTS].maxValue + 1.0));
+			// 	} else {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, continentalness_noise / env->noise[NOISE_CONTINENTS].maxValue));
+			// 	}
+			// } else if (env->flags == NOISE_EROSION) {
+			// 	if (erosion_noise < 0) {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, erosion_noise / env->noise[NOISE_EROSION].maxValue + 1.0));
+			// 	} else {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, erosion_noise / env->noise[NOISE_EROSION].maxValue));
+			// 	}
+			// } else if (env->flags == NOISE_TEMPERATURE) {
+			// 	if (temperature_noise  < 0) {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, temperature_noise  / env->noise[NOISE_TEMPERATURE].maxValue + 1.0));
+			// 	} else {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, temperature_noise  / env->noise[NOISE_TEMPERATURE].maxValue));
+			// 	}
+			// } else if (env->flags == NOISE_VEGETATION) {
+			// 	if (vegetation_noise  < 0) {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, vegetation_noise  / env->noise[NOISE_VEGETATION].maxValue + 1.0));
+			// 	} else {
+			// 		put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, vegetation_noise  / env->noise[NOISE_VEGETATION].maxValue));
+			// 	}
+			// } else if (env->flags == NOISE_RIDGES) {
+			// 	if (env->pv) {
+			// 		if (ridges_folded < 0) {
+			// 			put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, ridges_folded + 1.0));
+			// 		} else {
+			// 			put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, ridges_folded));
+			// 		}
+			// 	} else {
+			// 		if (ridges_noise < 0) {
+			// 			put_pixel(&env->img, x, y0, lerp_color((t_color){0x440154}, (t_color){0x238A8D}, ridges_noise / env->noise[NOISE_RIDGES].maxValue + 1.0));
+			// 		} else {
+			// 			put_pixel(&env->img, x, y0, lerp_color((t_color){0x238A8D}, (t_color){0xFDE725}, ridges_noise / env->noise[NOISE_RIDGES].maxValue));
+			// 		}
+			// 	}
+			// }
+
+			if (continentalness == CONT_MUSHROOM_FIELDS) {	// non-inland biomes
+				biome = BIOME_MUSHROOM_FIELDS;
+			} else if (continentalness == CONT_DEEP_OCEAN) {
+				biome = deep_ocean_to_biome(temperature_level);
+			} else if (continentalness == CONT_OCEAN) {
+				biome = ocean_to_biome(temperature_level);
+			} else if (continentalness >= CONT_COAST) {
+				biome = lookupBiome(env->biome_rules, peaks_valleys, erosion_level, continentalness, temperature_level, humidity_level, ridges_noise > 0);
+			}
+
+			if (biome > BIOME_COUNT) {
+				if (biome == BIOME_TYPE_BEACH) {
+					biome = beach_type_resolve(temperature_level);
+				} else if (biome == BIOME_TYPE_BADLAND)
+				{
+					biome = badland_type_resolve(humidity_level, ridges_noise);
+				} else if (biome == BIOME_TYPE_MIDDLE)
+				{
+					biome = middle_type_resolve(temperature_level, humidity_level, ridges_noise);
+				} else if (biome == BIOME_TYPE_PLATEAU)
+				{
+					biome = plateau_type_resolve(temperature_level, humidity_level, ridges_noise);
+				} else if (biome == BIOME_TYPE_SHATTERED)
+				{
+					biome = shattered_type_resolve(temperature_level, humidity_level, ridges_noise);
 				}
 			}
+			if (biome == BIOME_COUNT) {
+				biome = BIOME_THE_VOID;
+			}
+
+			if (biome == BIOME_THE_VOID) {
+				color.argb = 0;
+			} else {
+				color.argb = 0xFFFFFF;
+			}
 			
-			// put_pixel(&env->img, x, y0, lerp_color((t_color){0}, (t_color){0xFFFFFF}, continentalness * 0.25 + 0.5));
+			put_pixel(&env->img, x, y0, color);
 		}
 		y0++;
 	}
