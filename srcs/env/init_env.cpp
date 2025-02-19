@@ -47,18 +47,18 @@ int	init_env(t_env *env)
 	// env->perlin[NOISE_CONTINENTS] = MinecraftNoise(rand(), -9, std::vector<double>({1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0}));
 	// env->perlin[NOISE_EROSION] = MinecraftNoise(rand(), -6, std::vector<double>({1.0, 0.0, 1.0}));
 	env->noise[NOISE_CONTINENTS] = MultiOctaveNoise(&env->rng, -9, std::vector<double>({1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0}));
-	std::cerr << "max continentalness value: " << env->noise[NOISE_CONTINENTS].maxValue << std::endl;
+	std::cout << "max continentalness value: " << env->noise[NOISE_CONTINENTS].maxValue << std::endl;
 	env->rng.consume(100);
 	env->noise[NOISE_EROSION] = MultiOctaveNoise(&env->rng, -9, std::vector<double>({1.0, 1.0, 0.0, 1.0, 1.0}));
-	std::cerr << "max erosion value: " << env->noise[NOISE_EROSION].maxValue << std::endl;
+	std::cout << "max erosion value: " << env->noise[NOISE_EROSION].maxValue << std::endl;
 	env->rng.consume(100);
 	env->noise[NOISE_TEMPERATURE] = MultiOctaveNoise(&env->rng, -10, std::vector<double>({1.5, 0.0, 1.0, 0.0, 0.0, 0.0}));
-	std::cerr << "max temperature value: " << env->noise[NOISE_TEMPERATURE].maxValue << std::endl;
+	std::cout << "max temperature value: " << env->noise[NOISE_TEMPERATURE].maxValue << std::endl;
 	env->rng.consume(100);
 	env->noise[NOISE_VEGETATION] = MultiOctaveNoise(&env->rng, -8, std::vector<double>({1.0, 1.0, 0.0, 0.0, 0.0, 0.0}));
-	std::cerr << "max vegetation value: " << env->noise[NOISE_VEGETATION].maxValue << std::endl;
+	std::cout << "max vegetation value: " << env->noise[NOISE_VEGETATION].maxValue << std::endl;
 	env->rng.consume(100);
 	env->noise[NOISE_RIDGES] = MultiOctaveNoise(&env->rng, -7, std::vector<double>({1.0, 2.0, 1.0, 0.0, 0.0, 0.0}));
-	std::cerr << "max weirdness value: " << env->noise[NOISE_RIDGES].maxValue << std::endl;
+	std::cout << "max weirdness value: " << env->noise[NOISE_RIDGES].maxValue << std::endl;
 	return (0);
 }

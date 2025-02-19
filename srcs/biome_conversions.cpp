@@ -359,16 +359,81 @@ Biome_t shattered_type_resolve(int temperature_level, int humidity_level, double
 Biome_t lookupBiome(std::vector<BiomeRule_t> &biome_rules, int pv, int erosion, int continentalness, int temperature, int humidity, bool weirdness) {
     for (size_t i = 0; i < biome_rules.size(); i++) {
         BiomeRule_t &rule = biome_rules[i];
-        if (pv >= rule.pv &&
+        if (pv = rule.pv &&
 			erosion >= rule.erosion_min && erosion <= rule.erosion_max &&
 			continentalness >= rule.continentalness_min && continentalness <= rule.continentalness_max &&
 			temperature >= rule.temp_min && temperature <= rule.temp_max &&
 			humidity >= rule.humidity_min && humidity <= rule.humidity_max &&
-			(rule.variant == VARIANT_NONE || rule.variant == weirdness))
+			(rule.variant == VARIANT_NONE || (rule.variant == 0 && !weirdness) || (rule.variant == 1 && weirdness)))
         {
             return rule.biome;
         }
     }
     // Fallback case, if nothing matches.
     return BIOME_THE_VOID;
+}
+
+t_color biome_color(Biome_t biome) {
+	static const t_color biome_colors[] = {
+		BIOME_COLOR_THE_VOID,
+		BIOME_COLOR_OCEAN,
+		BIOME_COLOR_DEEP_OCEAN,
+		BIOME_COLOR_WARM_OCEAN,
+		BIOME_COLOR_LUKEWARM_OCEAN,
+		BIOME_COLOR_DEEP_LUKEWARM_OCEAN,
+		BIOME_COLOR_COLD_OCEAN,
+		BIOME_COLOR_DEEP_COLD_OCEAN,
+		BIOME_COLOR_FROZEN_OCEAN,
+		BIOME_COLOR_DEEP_FROZEN_OCEAN,
+		BIOME_COLOR_MUSHROOM_FIELDS,
+		BIOME_COLOR_JAGGED_PEAKS,
+		BIOME_COLOR_FROZEN_PEAKS,
+		BIOME_COLOR_STONY_PEAKS,
+		BIOME_COLOR_MEADOW,
+		BIOME_COLOR_CHERRY_GROVE,
+		BIOME_COLOR_GROVE,
+		BIOME_COLOR_SNOWY_SLOPES,
+		BIOME_COLOR_WINDSWEPT_HILLS,
+		BIOME_COLOR_WINDSWEPT_GRAVELLY_HILLS,
+		BIOME_COLOR_WINDSWEPT_FOREST,
+		BIOME_COLOR_FOREST,
+		BIOME_COLOR_FLOWER_FOREST,
+		BIOME_COLOR_TAIGA,
+		BIOME_COLOR_OLD_GROWTH_PINE_TAIGA,
+		BIOME_COLOR_OLD_GROWTH_SPRUCE_TAIGA,
+		BIOME_COLOR_SNOWY_TAIGA,
+		BIOME_COLOR_BIRCH_FOREST,
+		BIOME_COLOR_OLD_GROWTH_BIRCH_FOREST,
+		BIOME_COLOR_DARK_FOREST,
+		BIOME_COLOR_PALE_GARDEN,
+		BIOME_COLOR_JUNGLE,
+		BIOME_COLOR_SPARSE_JUNGLE,
+		BIOME_COLOR_BAMBOO_JUNGLE,
+		BIOME_COLOR_RIVER,
+		BIOME_COLOR_FROZEN_RIVER,
+		BIOME_COLOR_SWAMP,
+		BIOME_COLOR_MANGROVE_SWAMP,
+		BIOME_COLOR_BEACH,
+		BIOME_COLOR_SNOWY_BEACH,
+		BIOME_COLOR_STONY_SHORE,
+		BIOME_COLOR_PLAINS,
+		BIOME_COLOR_SUNFLOWER_PLAINS,
+		BIOME_COLOR_SNOWY_PLAINS,
+		BIOME_COLOR_ICE_SPIKES,
+		BIOME_COLOR_DESERT,
+		BIOME_COLOR_SAVANNA,
+		BIOME_COLOR_SAVANNA_PLATEAU,
+		BIOME_COLOR_WINDSWEPT_SAVANNA,
+		BIOME_COLOR_BADLANDS,
+		BIOME_COLOR_WOODED_BADLANDS,
+		BIOME_COLOR_ERODED_BADLANDS,
+		BIOME_COLOR_DEEP_DARK,
+		BIOME_COLOR_DRIPSTONE_CAVES,
+		BIOME_COLOR_LUSH_CAVES
+	};
+
+	if (biome > BIOME_COUNT) {
+		return biome_colors[BIOME_THE_VOID];
+	}
+	return biome_colors[biome];
 }

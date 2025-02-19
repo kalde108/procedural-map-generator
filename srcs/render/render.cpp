@@ -91,21 +91,62 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			// double continentalness_noise = env->perlin[NOISE_CONTINENTS].noise(nx, ny, nz);
 			double continentalness_noise = env->noise[NOISE_CONTINENTS].sample(nx, ny, nz);
 
+			// std::cerr << "cont: " << continentalness_noise << "\n";
+			// if (continentalness_noise < min) {
+			// 	min = continentalness_noise;
+			// }
+
+			// if (continentalness_noise > max) {
+			// 	max = continentalness_noise;
+			// }
+
 			Continentalness_t continentalness = noise_to_continentalness(continentalness_noise);
 
 			double erosion_noise = env->noise[NOISE_EROSION].sample(nx, ny, nz);
+
+			// if (erosion_noise < min) {
+			// 	min = erosion_noise;
+			// }
+
+			// if (erosion_noise > max) {
+			// 	max = erosion_noise;
+			// }
 
 			int erosion_level = noise_to_erosion_level(erosion_noise);
 
 			double temperature_noise = env->noise[NOISE_TEMPERATURE].sample(nx, ny, nz);
 
+			// if (temperature_noise < min) {
+			// 	min = temperature_noise;
+			// }
+
+			// if (temperature_noise > max) {
+			// 	max = temperature_noise;
+			// }
+
 			int temperature_level = noise_to_temperature_level(temperature_noise);
 
 			double vegetation_noise = env->noise[NOISE_VEGETATION].sample(nx, ny, nz);
 
+			// if (vegetation_noise < min) {
+			// 	min = vegetation_noise;
+			// }
+
+			// if (vegetation_noise > max) {
+			// 	max = vegetation_noise;
+			// }
+
 			int humidity_level = noise_to_humidity_level(vegetation_noise);
 
 			double ridges_noise = env->noise[NOISE_RIDGES].sample(nx, ny, nz);
+
+			if (ridges_noise < min) {
+				min = ridges_noise;
+			}
+
+			if (ridges_noise > max) {
+				max = ridges_noise;
+			}
 
 			double ridges_folded = 1.0 - fabs(3.0 * fabs(ridges_noise) - 2.0);
 
@@ -151,7 +192,7 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			// 		}
 			// 	}
 			// }
-
+			
 			if (continentalness == CONT_MUSHROOM_FIELDS) {	// non-inland biomes
 				biome = BIOME_MUSHROOM_FIELDS;
 			} else if (continentalness == CONT_DEEP_OCEAN) {
@@ -161,7 +202,7 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 			} else if (continentalness >= CONT_COAST) {
 				biome = lookupBiome(env->biome_rules, peaks_valleys, erosion_level, continentalness, temperature_level, humidity_level, ridges_noise > 0);
 			}
-
+			
 			if (biome > BIOME_COUNT) {
 				if (biome == BIOME_TYPE_BEACH) {
 					biome = beach_type_resolve(temperature_level);
@@ -183,16 +224,23 @@ void draw_noise_chunk(t_env *env, double zoff, int thread_id) {
 				biome = BIOME_THE_VOID;
 			}
 
-			if (biome == BIOME_THE_VOID) {
-				color.argb = 0;
-			} else {
-				color.argb = 0xFFFFFF;
+			if (env->input.mouse.status & MOUSE_BUTTON_RIGHT && env->input.mouse.x == x && env->input.mouse.y == y0)
+			{
+				std::cerr << "\npos: x" << nx << " y" << ny << "\n";
+				std::cerr << "pv: " << peaks_valleys << "\n";
+				std::cerr << "cont: " << continentalness << "\n";
+				std::cerr << "ero: " << erosion_level << "\n";
+				std::cerr << "temp: " << temperature_level << "\n";
+				std::cerr << "hum: " << humidity_level << "\n";
+				std::cerr << "biome: " << biome << std::endl;
 			}
+			
+			color = biome_color(biome);
 			
 			put_pixel(&env->img, x, y0, color);
 		}
 		y0++;
 	}
-	// std::cerr << "min: " << min << " ; max: " << max << std::endl;
+	std::cerr << "min: " << min << " ; max: " << max << std::endl;
 }
 

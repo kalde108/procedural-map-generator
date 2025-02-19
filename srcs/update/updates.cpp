@@ -12,7 +12,7 @@ void update_camera(t_env *env)
 	{
 		env->camera_pos.x -= (float)env->input.mouse.delta.x * ((float)1 / HEIGHT) * env->camera_zoom;
 		env->camera_pos.y -= (float)env->input.mouse.delta.y * ((float)1 / HEIGHT) * env->camera_zoom;
-		printf("camera_pos: %f %f\n", env->camera_pos.x, env->camera_pos.y);
+		// printf("camera_pos: %f %f\n", env->camera_pos.x, env->camera_pos.y);
 	}
 	if (env->input.key_state[KEY_Z] == KEY_STATE_PRESSED)
 	{

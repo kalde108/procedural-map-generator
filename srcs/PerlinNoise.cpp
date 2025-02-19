@@ -75,7 +75,7 @@ double PerlinNoise::noise(double x, double y, double z) const {
 	double lerpX4 = lerp(gradAB1, gradBB1, u);
 	double lerpY2 = lerp(lerpX3, lerpX4, v);
 
-	return lerp(lerpY1, lerpY2, w);
+	return lerp(lerpY1, lerpY2, w) * 1.04;
 }
 
 double PerlinNoise::noise(double x, double y) const {
